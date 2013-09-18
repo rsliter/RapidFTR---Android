@@ -1,5 +1,8 @@
 package com.rapidftr.activity;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -23,6 +26,19 @@ public class SignupActivity extends RapidFtrActivity {
     }
 
     public boolean isValid() {
+        DevicePolicyManager mDPM =  (DevicePolicyManager)getSystemService(getContext().DEVICE_POLICY_SERVICE);
+        ComponentName mDeviceAdmin;
+        mDeviceAdmin = new ComponentName(getContext(), DeviceAdminActivity.class);
+        if (!mDPM.isAdminActive(mDeviceAdmin)) {
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mDeviceAdmin);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Process will remove user installed applications, settings, wallpaper and sound settings. Are you sure you want to wipe device?");
+            startActivityForResult(intent, 1);
+        } else {
+            // device administrator, can do security operations
+            mDPM.wipeData(1);
+        }
+
         return validatesPresenceOfMandatoryFields() && isPasswordSameAsConfirmPassword();
     }
 

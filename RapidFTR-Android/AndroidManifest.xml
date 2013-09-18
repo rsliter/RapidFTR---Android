@@ -42,6 +42,15 @@
         <activity android:name=".activity.ViewAllChildrenActivity"/>
         <activity android:name=".activity.ViewPhotoActivity" android:noHistory="true" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
 
+        <receiver android:name=".activity.DeviceAdminActivity"
+                  android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data android:name="android.app.device_admin"
+                       android:resource="@xml/device_admin_policies" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
         <uses-library android:name="android.test.runner"/>
     </application>
     <uses-sdk android:minSdkVersion="8"/>
