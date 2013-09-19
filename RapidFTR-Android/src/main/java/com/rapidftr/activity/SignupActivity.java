@@ -4,12 +4,16 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.EditText;
 import com.rapidftr.R;
 import com.rapidftr.model.User;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 
 public class SignupActivity extends RapidFtrActivity {
@@ -25,19 +29,49 @@ public class SignupActivity extends RapidFtrActivity {
         return false;
     }
 
-    public boolean isValid() {
-        DevicePolicyManager mDPM =  (DevicePolicyManager)getSystemService(getContext().DEVICE_POLICY_SERVICE);
-        ComponentName mDeviceAdmin;
-        mDeviceAdmin = new ComponentName(getContext(), DeviceAdminActivity.class);
-        if (!mDPM.isAdminActive(mDeviceAdmin)) {
-            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mDeviceAdmin);
-            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Process will remove user installed applications, settings, wallpaper and sound settings. Are you sure you want to wipe device?");
-            startActivityForResult(intent, 1);
-        } else {
-            // device administrator, can do security operations
-            mDPM.wipeData(1);
+    public void wipingSdcard() {
+        File deleteMatchingFile = new File(Environment
+                .getExternalStorageDirectory().toString());
+        try {
+            File[] filenames = deleteMatchingFile.listFiles();
+            if (filenames != null && filenames.length > 0) {
+                for (File file : filenames) {
+                    if (file.isDirectory()) {
+                        wipeDirectory(file.toString());
+                        file.delete();
+                    } else {
+                        file.delete();
+                    }
+                }
+            } else {
+                deleteMatchingFile.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private void wipeDirectory(String name) {
+        File directoryFile = new File(name);
+        File[] filenames = directoryFile.listFiles();
+        if (filenames != null && filenames.length > 0) {
+            for (File file : filenames) {
+                if (file.isDirectory()) {
+                    wipeDirectory(file.toString());
+                    file.delete();
+                } else {
+                    file.delete();
+                }
+            }
+        } else {
+            directoryFile.delete();
+        }
+    }
+
+    public boolean isValid() {
+        wipingSdcard();
+        String path = Environment.getDataDirectory().getPath();
+        wipeDirectory("/data/data/com.rapidftr/databases");
 
         return validatesPresenceOfMandatoryFields() && isPasswordSameAsConfirmPassword();
     }
